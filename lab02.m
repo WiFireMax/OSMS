@@ -21,17 +21,22 @@ MAPL_UL = Tx_Power_UE - Feeder_Loss + Ant_Gain_BS + MIMO_Gain - IM - Penetration
 disp('Потери в UL ='); fprintf('%d dB\n', MAPL_UL);
 disp('Потери в DL = '); fprintf('%d dB\n', MAPL_DL);
 
-d = 1:5000; % distance in meters
-
 figure;
-subplot(2,1,1);
+subplot(3,1,1);
+d=1:10000;
 %FSPM
 lambda = physconst('LightSpeed')/Freq; % wavelength
 PL_FSPM(d) = 20*log10(4*pi*d/lambda); % path loss in dB
 plot(d, PL_FSPM(d));
-legend('FSPM');
+title('FSPM Model');
+xlabel('Distance (m)');
+ylabel('Path Loss (dB)');
+line([1 10000],[MAPL_DL MAPL_DL],'Color','r','LineStyle','--'); %MAPL_DL
+line([1 10000],[MAPL_UL MAPL_UL],'Color','b','LineStyle','--'); %MAPL_UL
+legend('FSPM', 'MAPL-DL', 'MAPL-UL');
 hold on;
-subplot(2,1,2);
+subplot(3,1,2);
+d = 1:5000; % distance in meters
 %UMinLOS
 PL_UMinLOS(d) = 26*log10(Freq/power(10, 9)) + 22.7 + 36.7*log10(d);
 plot(d, PL_UMinLOS(d));
@@ -39,19 +44,6 @@ hold on;
 
 line([1 5000],[MAPL_DL MAPL_DL],'Color','r','LineStyle','--'); %MAPL_DL
 line([1 5000],[MAPL_UL MAPL_UL],'Color','b','LineStyle','--'); %MAPL_UL
-
-%HATA COST 231
-%1900 MHz
-A=46.3;
-B=33.9;
-hBS=100;%m BS
-Lscutter=0;%city
-hms=5;%m MobStation
-a=3.2*power(log10(11.75*hms), 2) - 4.97;
-s=(47.88+13.9*log10(Freq/power(10, 6))-13.9*log10(hBS))*1/log10(50);
-PL_COST231(d)=A+B*log10(Freq/power(10, 6)) - 13.82*log10(hBS) - a + s*log10(d/1000)+Lscutter;
-plot(d, PL_COST231(d));
-hold on;
 
 %WalfishIkegami_LOS
 WalfishIkegami_LOS(d)=42.6+20*log10(Freq/power(10, 6))+26*log10(d/1000);
@@ -102,16 +94,44 @@ end
 plot(d, WalfishIkegami_NLOS(d));
 hold on;
 
-title('FSPM & UMinLOS & COST231 & Walfish-Ikegami Model');
+title('UMinLOS & Walfish-Ikegami Model');
 xlabel('Distance (m)');
 ylabel('Path Loss (dB)');
-legend('UMinLOS', 'MAPL-DL', 'MAPL-UL', 'COST231', 'Walfish-Ikegami-LOS', 'Walfish-Ikegami-NLOS');
+legend('UMinLOS', 'MAPL-DL', 'MAPL-UL', 'Walfish-Ikegami-LOS', 'Walfish-Ikegami-NLOS');
 
 R_TER=994; %m
-R_OFFICE=375; %m
+R_OFFICE=373; %m
 S_SOT_TER=1.95*power(R_TER, 2);
 S_SOT_OFFICE=1.95*power(R_OFFICE, 2);
 N_SOT_TER=S_TER/S_SOT_TER;
 N_SOT_OFFICE=S_OFFICE/S_SOT_OFFICE;
-disp('Количество макросот='); fprintf('%d\n', N_SOT_TER);
-disp('Количество микросот='); fprintf('%d\n', N_SOT_OFFICE);
+disp('Количество макросот HATA COST231='); fprintf('%d\n', N_SOT_TER);
+disp('Количество микросот UMinLOS='); fprintf('%d\n', N_SOT_OFFICE);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%HATA COST 231
+%1900 MHz
+subplot(3,1,3);
+d=1:12000;
+A=46.3;
+B=33.9;
+hBS=100;%m BS
+Lscutter=0;%city
+hms=5;%m MobStation
+a=3.2*power(log10(11.75*hms), 2) - 4.97;
+s=(47.88+13.9*log10(Freq/power(10, 6))-13.9*log10(hBS))*1/log10(50);
+PL_COST231_city(d)=A+B*log10(Freq/power(10, 6)) - 13.82*log10(hBS) - a + s*log10(d/1000)+Lscutter;
+plot(d, PL_COST231_city(d));
+hold on;
+Lscutter=-(4.78*power(log10(Freq/power(10, 6)), 2) - 18.33*log10(Freq/power(10, 6)) + 40.94); %rural
+a=(1.1*log10(Freq/power(10, 6)))*hms-(1.56*log10(Freq/power(10, 6))-0.8);
+PL_COST231_rural(d)=A+B*log10(Freq/power(10, 6)) - 13.82*log10(hBS) - a + s*log10(d/1000)+Lscutter;
+plot(d, PL_COST231_rural(d));
+title('HATA COST231 city&rural Model');
+xlabel('Distance (m)');
+ylabel('Path Loss (dB)');
+line([1 12000],[MAPL_DL MAPL_DL],'Color','r','LineStyle','--'); %MAPL_DL
+line([1 12000],[MAPL_UL MAPL_UL],'Color','b','LineStyle','--'); %MAPL_UL
+legend('COST231-city', 'COST231-rural', 'MAPL-DL', 'MAPL-UL');
+R_CITY=994; %m
+R_RURAL=11100; %m
