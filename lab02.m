@@ -1,63 +1,70 @@
-Tx_Power_BS = 43; %мощность передатчика базы дБм
+Tx_Power_BS = 46; %мощность передатчика базы дБм
 Feeder_Loss = 2.9; %уровень потерь сигнала при прохождение через фидер, джампер, МШУ, дБ
 Ant_Gain_BS = 21; %коэффициент усиления антенны дБи
 MIMO_Gain = 3; %выигрыш за счёт MIMO дБ
-IM = 6; %запас мощности на интерференцию дБ
-Penetration_M = 17; %запас сигнала на через стены дБ
-Tx_Power_UE = 23; %мощность передатчика пользователя дБм
-Freq = 1.9e9; %диапозон частот ГГц
-Polosa_DL_UL = 20e6; %полоса частот МГц
+IM = 1; %запас мощности на интерференцию дБ
+Penetration_M = 15; %запас сигнала на через стены дБ
+Tx_Power_UE = 24; %мощность передатчика пользователя дБм
+Freq = 1.8e9; %диапозон частот Гц
+Polosa_DL = 10e6; %полоса частот Гц DL
+Polosa_UL = 20e6; %полоса частот Гц UL
 Noise_BS = 2.4; %коэф шума приёмника базы дБ
-Noise_UE = 7; %коэф шума приёмника пользователя дБ
-SINR_DL = 11; %дБ
-SINR_UL = 14; %дБ
+Noise_UE = 6; %коэф шума приёмника пользователя дБ
+SINR_DL = 2; %дБ
+SINR_UL = 4; %дБ
 S_TER = 100e6; %Площадь территории, на которой требуется спроектировать сеть COST 231 Hata m^2
 S_OFFICE = 4e6; %Площадь торговых и бизнес центров UMiNLOS m^2
-Rx_Sens_BS = Noise_BS - 174 + 10*log10(Polosa_DL_UL) + SINR_UL; %чувствит приёмника базы
-Rx_Sens_UE = Noise_UE - 174 + 10*log10(Polosa_DL_UL) + SINR_DL; %чувствит приёмника пользователя
+Rx_Sens_BS = Noise_BS - 174 + 10*log10(Polosa_UL) + SINR_UL; %чувствит приёмника базы
+Rx_Sens_UE = Noise_UE - 174 + 10*log10(Polosa_DL) + SINR_DL; %чувствит приёмника пользователя
 MAPL_DL = Tx_Power_BS - Feeder_Loss + Ant_Gain_BS + MIMO_Gain - IM - Penetration_M - Rx_Sens_UE;
 MAPL_UL = Tx_Power_UE - Feeder_Loss + Ant_Gain_BS + MIMO_Gain - IM - Penetration_M - Rx_Sens_BS;
-disp(MAPL_UL);
-disp(MAPL_DL);
+disp('Потери в UL ='); fprintf('%d dB\n', MAPL_UL);
+disp('Потери в DL = '); fprintf('%d dB\n', MAPL_DL);
 
-d = 1:1000; % distance in meters
+d = 1:5000; % distance in meters
 
 figure;
 subplot(2,1,1);
+%FSPM
 lambda = physconst('LightSpeed')/Freq; % wavelength
 PL_FSPM(d) = 20*log10(4*pi*d/lambda); % path loss in dB
 plot(d, PL_FSPM(d));
 legend('FSPM');
 hold on;
 subplot(2,1,2);
+%UMinLOS
 PL_UMinLOS(d) = 26*log10(Freq/power(10, 9)) + 22.7 + 36.7*log10(d);
 plot(d, PL_UMinLOS(d));
 hold on;
 
-line([1 1000],[MAPL_DL MAPL_DL],'Color','r','LineStyle','--');
-line([1 1000],[MAPL_UL MAPL_UL],'Color','b','LineStyle','--');
+line([1 5000],[MAPL_DL MAPL_DL],'Color','r','LineStyle','--'); %MAPL_DL
+line([1 5000],[MAPL_UL MAPL_UL],'Color','b','LineStyle','--'); %MAPL_UL
 
+%HATA COST 231
+%1900 MHz
 A=46.3;
 B=33.9;
-hBS=100;%m
+hBS=100;%m BS
 Lscutter=0;%city
-hms=5;%m
+hms=5;%m MobStation
 a=3.2*power(log10(11.75*hms), 2) - 4.97;
 s=(47.88+13.9*log10(Freq/power(10, 6))-13.9*log10(hBS))*1/log10(50);
 PL_COST231(d)=A+B*log10(Freq/power(10, 6)) - 13.82*log10(hBS) - a + s*log10(d/1000)+Lscutter;
 plot(d, PL_COST231(d));
 hold on;
 
+%WalfishIkegami_LOS
 WalfishIkegami_LOS(d)=42.6+20*log10(Freq/power(10, 6))+26*log10(d/1000);
 plot(d, WalfishIkegami_LOS(d));
 hold on;
 
-hBS=30;
-hms=2;
-w=30;
-dh=200;
-b=20;
-W=30;
+%WalfishIkegami_NLOS
+hBS=30; %m BS
+hms=2; %m MobStation
+w=30; %градус
+dh=200; %высота зданий m
+b=20; %m между зданиями
+W=30; %m ширина улицы
 if (w>=0) && (w < 35)
     dw = -10+0.354*w;
 end
@@ -100,11 +107,11 @@ xlabel('Distance (m)');
 ylabel('Path Loss (dB)');
 legend('UMinLOS', 'MAPL-DL', 'MAPL-UL', 'COST231', 'Walfish-Ikegami-LOS', 'Walfish-Ikegami-NLOS');
 
-R_TER=321; %m
-R_OFFICE=116; %m
+R_TER=994; %m
+R_OFFICE=375; %m
 S_SOT_TER=1.95*power(R_TER, 2);
 S_SOT_OFFICE=1.95*power(R_OFFICE, 2);
 N_SOT_TER=S_TER/S_SOT_TER;
 N_SOT_OFFICE=S_OFFICE/S_SOT_OFFICE;
-disp(N_SOT_TER);
-disp(N_SOT_OFFICE);
+disp('Количество макросот='); fprintf('%d\n', N_SOT_TER);
+disp('Количество микросот='); fprintf('%d\n', N_SOT_OFFICE);
