@@ -356,9 +356,9 @@ end
 figure(3);
 subplot(3, 1, 1);
 fs = 1/Tb; % Частота дискретизации
-NFFT = 2^nextpow2(length(st)); % Ближайшая степень двойки для быстрого вычисления ДПФ
+NFFT = 2^nextpow2(length(st2)); % Ближайшая степень двойки для быстрого вычисления ДПФ
 f = fs/2*linspace(0,1,NFFT/2+1); % Вектор частот
-tx_signal = abs(fft(st, NFFT)/length(st)); % ДПФ передаваемого сигнала
+tx_signal = abs(fft(st2, NFFT)/length(st2)); % ДПФ передаваемого сигнала
 at_signal = abs(fft(noisy_signal, NFFT)/length(noisy_signal)); % ДПФ принимаемого (зашумленного) сигнала
 plot(f, tx_signal(1:NFFT/2+1), f, at_signal(1:NFFT/2+1));
 xlabel('Частота (Гц)');
@@ -480,9 +480,9 @@ noisy_signal = st2 + noise; % Поэлементное сложение инфо
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subplot(3, 1, 2);
 fs = 1/Tb; % Частота дискретизации
-NFFT = 2^nextpow2(length(st)); % Ближайшая степень двойки для быстрого вычисления ДПФ
+NFFT = 2^nextpow2(length(st2)); % Ближайшая степень двойки для быстрого вычисления ДПФ
 f = fs/2*linspace(0,1,NFFT/2+1); % Вектор частот
-tx_signal = abs(fft(st, NFFT)/length(st)); % ДПФ передаваемого сигнала
+tx_signal = abs(fft(st2, NFFT)/length(st2)); % ДПФ передаваемого сигнала
 at_signal = abs(fft(noisy_signal, NFFT)/length(noisy_signal)); % ДПФ принимаемого (зашумленного) сигнала
 plot(f, tx_signal(1:NFFT/2+1), f, at_signal(1:NFFT/2+1));
 title('Спектр сигналов через большие символы (32 бит)');
@@ -606,9 +606,9 @@ noisy_signal = st2 + noise; % Поэлементное сложение инфо
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subplot(3, 1, 3);
 fs = 1/Tb; % Частота дискретизации
-NFFT = 2^nextpow2(length(st)); % Ближайшая степень двойки для быстрого вычисления ДПФ
+NFFT = 2^nextpow2(length(st2)); % Ближайшая степень двойки для быстрого вычисления ДПФ
 f = fs/2*linspace(0,1,NFFT/2+1); % Вектор частот
-tx_signal = abs(fft(st, NFFT)/length(st)); % ДПФ передаваемого сигнала
+tx_signal = abs(fft(st2, NFFT)/length(st2)); % ДПФ передаваемого сигнала
 at_signal = abs(fft(noisy_signal, NFFT)/length(noisy_signal)); % ДПФ принимаемого (зашумленного) сигнала
 plot(f, tx_signal(1:NFFT/2+1), f, at_signal(1:NFFT/2+1));
 xlabel('Частота (Гц)');
